@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CV Analyzer{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    
+    <!-- Navigation -->
+
+
+<nav x-data="{ menuOpen: false }" class="bg-blue-600 text-white shadow-md">
+    <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="{% url 'home' %}" class="text-xl font-bold">CV Analyzer</a>
+        <div class="hidden md:flex space-x-4 items-center">
+            <a href="{% url 'upload' %}" class="hover:text-blue-200">Upload CV</a>
+            <a href="{% url 'candidates' %}" class="hover:text-blue-200">Candidates</a>
+            <a href="{% url 'chat' %}" class="hover:text-blue-200">Chat Assistant</a>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button @click="menuOpen = !menuOpen" class="md:hidden focus:outline-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Mobile Dropdown -->
+    <div 
+        x-show="menuOpen" 
+        x-cloak
+        x-transition
+        class="md:hidden bg-blue-700">
+        <a href="{% url 'upload' %}" class="block py-2 px-4 text-white hover:bg-blue-800">Upload CV</a>
+        <a href="{% url 'candidates' %}" class="block py-2 px-4 text-white hover:bg-blue-800">Candidates</a>
+        <a href="{% url 'chat' %}" class="block py-2 px-4 text-white hover:bg-blue-800">Chat Assistant</a>
+    </div>
+</nav>
+
+
+    
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mx-auto px-6 py-2">
+        {% for message in messages %}
+        <div class="px-4 py-3 rounded my-2 border-l-4 
+                    {% if message.tags == 'error' %} bg-red-100 border-red-500 text-red-700 
+                    {% else %} bg-green-100 border-green-500 text-green-700 {% endif %}" 
+             role="alert">
+            <span class="block sm:inline">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8 flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-blue-600 text-white py-4">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; {% now "Y" %} CV Analyzer. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
