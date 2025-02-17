@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - CV Tracking System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg text-center">
+            <h1 class="text-2xl font-bold mb-4">Welcome to the CV Tracking System</h1>
+            <p class="text-gray-600 mb-6">Upload your CV and track its processing status.</p>
+            
+            <div x-data="{ open: false }">
+                <button @click="open = !open" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    Upload CV
+                </button>
+
+                <!-- Upload Modal -->
+                <div x-show="open" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                        <h2 class="text-xl font-semibold mb-4">Upload Your CV</h2>
+                        <form action="" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="file" name="cv" class="block w-full border border-gray-300 p-2 rounded mb-4">
+                            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                                Submit
+                            </button>
+                        </form>
+                        <button @click="open = false" class="mt-4 text-gray-500 hover:underline">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
