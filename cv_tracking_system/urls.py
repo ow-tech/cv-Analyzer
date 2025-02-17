@@ -7,5 +7,5 @@ urlpatterns = [
     path('candidates/', views.CandidatesView.as_view(), name='candidates'),
     path('candidates/<int:pk>/', views.CandidateDetailView.as_view(), name='candidate_detail'),
     path('chat/', views.ChatView.as_view(), name='chat'),
-   
+
 ]

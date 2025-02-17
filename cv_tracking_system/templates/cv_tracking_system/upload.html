@@ -1,0 +1,60 @@
+{% extends 'cv_tracking_system/base.html' %} {% block title %}Upload CV - CV
+Analyzer{% endblock %} {% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold mb-6">Upload CV Document</h1>
+
+  <div class="bg-white rounded-lg shadow-md p-8">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="space-y-2">
+        <label for="{{ form.file_path.id_for_label }}" class="block text-sm font-medium text-gray-700">
+            CV Document (PDF or Word)
+        </label>
+        <div class="flex items-center justify-center w-full">
+            <label for="file-upload" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                    <p class="text-xs text-gray-500">PDF or Word document (MAX. 10MB)</p>
+                    <p id="file-name-display" class="mt-2 text-sm text-gray-600"></p> 
+                </div>
+            </label>
+            <!-- Move file input outside -->
+            <input id="file-upload" name="file_path" type="file" class="hidden">
+        </div>
+        {% if form.file_path.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ form.file_path.errors }}</p>
+        {% endif %}
+    </div>
+    
+
+      <div class="flex justify-end">
+        <button
+          type="submit"
+          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        >
+          Upload and Process
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="mt-8 bg-blue-50 rounded-lg p-6 border border-blue-200">
+    <h2 class="text-xl font-semibold mb-3 text-blue-800">Supported Features</h2>
+    <ul class="list-disc list-inside space-y-2 text-blue-700">
+      <li>Automatic text extraction from PDF and Word documents</li>
+      <li>OCR fallback for scanned documents</li>
+      <li>
+        Extraction of personal information, education, work experience, skills,
+        projects, and certifications
+      </li>
+      <li>AI-powered analysis and categorization</li>
+    </ul>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+
+{% endblock %}

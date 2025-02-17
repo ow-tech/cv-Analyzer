@@ -6,10 +6,10 @@ class HomeView(View):
         return render(request, 'cv_tracking_system/home.html')
 class UploadView(View):
     def get(self, request):
-        return render(request, 'cv_tracking_system/home.html')
+        return render(request, 'cv_tracking_system/upload.html')
 class CandidatesView(View):
     def get(self, request):
-        return render(request, 'cv_tracking_system/home.html')
+        return render(request, 'cv_tracking_system/upload.html')
 
 class CandidateDetailView(View):
     def get(self, request, pk):

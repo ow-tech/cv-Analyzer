@@ -10,7 +10,7 @@
 
     <!-- Features Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        <a href="" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition duration-300 flex flex-col items-center">
+        <a href="{% url 'upload' %}" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition duration-300 flex flex-col items-center">
             <svg class="text-blue-600 w-12 h-12 mb-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 3l7 7h-4v7h-6v-7H5l7-7zm0 18c-4.97 0-9-4.03-9-9h2c0 3.86 3.14 7 7 7s7-3.14 7-7h2c0 4.97-4.03 9-9 9z"/>
             </svg>
@@ -18,7 +18,7 @@
             <p class="text-gray-600">Upload PDF or Word documents for analysis</p>
         </a>
 
-        <a href="" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition duration-300 flex flex-col items-center">
+        <a href="{% url 'candidates' %}" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition duration-300 flex flex-col items-center">
             <svg class="text-blue-600 w-12 h-12 mb-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 12c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4zm0-2c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0 2c-3.31 0-10 1.67-10 5v4h20v-4c0-3.33-6.69-5-10-5z"/>
             </svg>
@@ -26,7 +26,7 @@
             <p class="text-gray-600">Browse and search through analyzed candidates</p>
         </a>
 
-        <a href="" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition duration-300 flex flex-col items-center">
+        <a href="{% url 'chat' %}" class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition duration-300 flex flex-col items-center">
             <svg class="text-blue-600 w-12 h-12 mb-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M4 4h16v12H5.17L4 18.17V4zm2 2v7h12V6H6zm3 3h6v2H9V9z"/>
             </svg>
