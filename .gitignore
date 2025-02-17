@@ -1,0 +1,45 @@
+# Byte-compiled / compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+*.venv
+*.env
+
+# Django stuff
+db.sqlite3
+media/
+staticfiles/
+*.log
+
+# Environment variables
+.env
+*.env
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.sublime-workspace
+
+# MacOS files
+.DS_Store
+
+# Pytest / Coverage reports
+htmlcov/
+.coverage
+*.cover
+coverage.xml
+pytest_cache/
+
+# Migrations (optional, keep if not tracking initial migrations)
+**/migrations/*.pyc
+**/migrations/*.pyo
+**/migrations/*.pyd
+**/migrations/__pycache__/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
