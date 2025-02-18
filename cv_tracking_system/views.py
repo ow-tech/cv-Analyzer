@@ -61,5 +61,11 @@ class CandidateDetailView(View):
     }
         return render(request, 'cv_tracking_system/candidate_detail.html', {"candidate": candidate})
 class ChatView(View):
-    def get(self, request, pk):
-        return render(request, 'cv_tracking_system/home.html')
+    def get(self, request):
+        dummy_messages = [
+            {"role": "user", "content": "Find candidates with Python experience."},
+            {"role": "assistant", "content": "Here are some candidates with Python expertise:\n\n1. John Doe - 5 years of experience.\n2. Jane Smith - 3 years of experience."},
+            {"role": "user", "content": "Who has experience in project management?"},
+            {"role": "assistant", "content": "Candidates with project management experience:\n\n1. Alex Johnson - PMP Certified.\n2. Emily Davis - 7 years of experience."},
+        ]
+        return render(request, 'cv_tracking_system/chat.html', {"messages": dummy_messages})

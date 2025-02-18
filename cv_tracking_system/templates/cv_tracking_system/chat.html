@@ -1,0 +1,181 @@
+{% extends 'cv_tracking_system/base.html' %}
+
+{% block title %}Chat Assistant - CV Analyzer{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">CV Chat Assistant</h1>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-[70vh]">
+        <!-- Chat messages area -->
+        <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4">
+            {% if not messages %}
+            <div class="flex flex-col items-center justify-center h-full text-center text-gray-500 space-y-4">
+                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                </svg>
+                <div>
+                    <p class="text-lg font-medium">Ask me about your candidates!</p>
+                    <p class="mt-1">I can help you find candidates with specific skills, experience, or education.</p>
+                </div>
+                <div class="mt-6 space-y-2 w-full max-w-sm">
+                    <button onclick="askExample('Find candidates with Python and machine learning experience')" class="w-full px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 text-sm rounded-lg transition">
+                        Find candidates with Python and machine learning experience
+                    </button>
+                    <button onclick="askExample('Who has experience in project management?')" class="w-full px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 text-sm rounded-lg transition">
+                        Who has experience in project management?
+                    </button>
+                    <button onclick="askExample('Show me candidates with a bachelor\'s degree in Computer Science')" class="w-full px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 text-sm rounded-lg transition">
+                        Show me candidates with a bachelor's degree in Computer Science
+                    </button>
+                </div>
+            </div>
+            {% else %}
+                {% for message in messages %}
+                <div class="flex {% if message.role == 'user' %}justify-end{% else %}justify-start{% endif %}">
+                    <div class="max-w-3/4 p-3 rounded-lg {% if message.role == 'user' %}bg-blue-100 text-blue-900{% else %}bg-gray-100 text-gray-900{% endif %}">
+                        <p>{{ message.content|linebreaksbr }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                <div id="message-end"></div>
+            {% endif %}
+        </div>
+        
+        <!-- Input area -->
+        <div class="border-t border-gray-200 p-4">
+            <form id="chat-form" class="flex space-x-2">
+                {% csrf_token %}
+                <div class="flex-grow">
+                    {{ form.query }}
+                </div>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center space-x-1">
+                    <span>Ask</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="mt-6 bg-blue-50 rounded-lg p-6 border border-blue-200">
+        <h2 class="text-xl font-semibold mb-3 text-blue-800">Tips for Querying</h2>
+        <ul class="list-disc list-inside space-y-2 text-blue-700">
+            <li>Ask about specific skills: "Find candidates with JavaScript experience"</li>
+            <li>Query for education: "Who has a Master's degree?"</li>
+            <li>Search by experience: "Show people with 5+ years in software development"</li>
+            <li>Compare candidates: "Compare top candidates for a data scientist role"</li>
+            <li>Ask follow-up questions about your results</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const chatForm = document.getElementById('chat-form');
+    const chatMessages = document.getElementById('chat-messages');
+    const queryInput = document.getElementById('{{ form.query.id_for_label }}');
+    
+    // Function to add a message to the chat
+    function addMessage(content, role) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = `max-w-3/4 p-3 rounded-lg ${role === 'user' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-900'}`;
+        
+        const paragraph = document.createElement('p');
+        paragraph.innerHTML = content.replace(/\n/g, '<br>');
+        
+        contentDiv.appendChild(paragraph);
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        const messageEnd = document.getElementById('message-end') || messageDiv;
+        messageEnd.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Function to handle form submission
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const query = queryInput.value.trim();
+        if (!query) return;
+        
+        // Add user message
+        addMessage(query, 'user');
+        
+        // Clear input
+        queryInput.value = '';
+        
+        // Show loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'flex justify-start';
+        loadingDiv.innerHTML = `
+            <div class="max-w-3/4 p-3 rounded-lg bg-gray-100 text-gray-900">
+                <p>Thinking<span class="loading-dots">...</span></p>
+            </div>
+        `;
+        chatMessages.appendChild(loadingDiv);
+        
+        // Animate loading dots
+        const loadingDots = document.querySelector('.loading-dots');
+        let dots = 3;
+        const loadingInterval = setInterval(() => {
+            loadingDots.textContent = '.'.repeat(dots);
+            dots = dots === 3 ? 1 : dots + 1;
+        }, 500);
+        
+        try {
+            // Send request to server
+            const response = await fetch('{% url "chat" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.getElementsByName('csrfmiddlewaretoken')[0].value
+                },
+                body: new URLSearchParams({
+                    'query': query
+                })
+            });
+            
+            const data = await response.json();
+            
+            // Remove loading indicator
+            chatMessages.removeChild(loadingDiv);
+            clearInterval(loadingInterval);
+            
+            // Add assistant message
+            addMessage(data.response, 'assistant');
+            
+        } catch (error) {
+            console.error('Error:', error);
+            
+            // Remove loading indicator
+            chatMessages.removeChild(loadingDiv);
+            clearInterval(loadingInterval);
+            
+            // Show error message
+            addMessage('Sorry, there was an error processing your request. Please try again.', 'assistant');
+        }
+    });
+    
+    // Function to ask example questions
+    function askExample(question) {
+        queryInput.value = question;
+        chatForm.dispatchEvent(new Event('submit'));
+    }
+    
+    // Scroll to bottom of chat on load
+    window.onload = function() {
+        const messageEnd = document.getElementById('message-end');
+        if (messageEnd) {
+            messageEnd.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+</script>
+{% endblock %}
