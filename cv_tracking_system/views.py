@@ -4,59 +4,89 @@ from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 import logging
 import os
 from .forms import CVUploadForm
+from .models import Candidate, unique_filename
 from .services.document_processor import process_document
-
-
+from .services.llm_client import LLMClient
+from .services.information_extractor import extract_structured_info
 logger = logging.getLogger(__name__)
 class HomeView(View):
     def get(self, request):
         return render(request, 'cv_tracking_system/home.html')
+    
+
+
+logger = logging.getLogger(__name__)
+
 class UploadView(View):
     def get(self, request):
         form = CVUploadForm()
         return render(request, 'cv_tracking_system/upload.html', {'form': form})
-    
+
     def post(self, request):
         form = CVUploadForm(request.POST, request.FILES)
-
-        # Ensure the correct file field is checked
-        if 'file_path' not in request.FILES:
-            print("❌ No file uploaded")
-            messages.error(request, "No file uploaded. Please select a file.")
-            return redirect('upload')
-
-        uploaded_file = request.FILES['file_path']
-        print(f"✅ File received: {uploaded_file.name} ({uploaded_file.size} bytes)")
-
         if form.is_valid():
-            candidate = form.save(commit=False)  # Save but don’t commit yet
-
-            # Ensure file was actually saved
-            if not candidate.file_path:
-                messages.error(request, "File path is empty.")
+            candidate = form.save(commit=False)
+            if not request.FILES.get('file_path'):  # ✅ Check if file exists
+                messages.error(request, "No file was uploaded.")
                 return redirect('upload')
-
-            print(f"✅ File saved at: {candidate.file_path.path}")
+            candidate.save()
+            #  Ensure file exists
+            if not candidate.file_path or not candidate.file_path.name:
+                messages.error(request, "No file was uploaded.")
+                return redirect('upload')
 
             try:
+                #  Process document safely
                 raw_text = process_document(candidate.file_path.path)
-                print("Raw text extracted:", raw_text)
-                candidate.raw_text = raw_text  # Save extracted text
-                candidate.save()  # Now commit
-                messages.success(request, "File uploaded successfully!")
-            except Exception as e:
-                messages.error(request, f"Error processing CV: {str(e)}")
+                # print('raw_text', raw_text)
+                if not raw_text:
+                    messages.error(request, "Failed to extract text from CV.")
+                    return redirect('upload')
+
+                llm_client = LLMClient() 
+                structured_info = extract_structured_info(raw_text, llm_client)
+                print('structured_info structured_info', structured_info)
+                if not structured_info or 'error' in structured_info:
+                    messages.error(request, "Failed to process structured info.")
+                    return redirect('upload')
+
+                if 'error' in structured_info:
+                    messages.error(request, f"Error processing CV: {structured_info['error']}")
+                    return redirect('upload')
+
+                #  Update candidate info
+                personal_info = structured_info.get('personal_info') or {}
+                candidate.name = personal_info.get('name', 'Unknown')
+                candidate.email = personal_info.get('email', '')
+                candidate.phone = personal_info.get('phone', '')
+                candidate.location = personal_info.get('location', '')
+                candidate.raw_text = raw_text
+                candidate.structured_data = structured_info
+
+                candidate.save()
+                messages.success(request, f"Successfully processed CV for {candidate.name}")
                 return redirect('upload')
-            
-            # ✅ Return a response after success
-            return HttpResponseRedirect(reverse('upload'))
+
+            except ValueError as e:
+                messages.error(request, f"Invalid data: {str(e)}")
+                logger.error(f"ValueError in UploadView: {e}")
+                return redirect('upload')
+
+            except Exception as e:
+                messages.error(request, "Unexpected error occurred.")
+                logger.error(f"Unexpected error in UploadView: {e}", exc_info=True)
+                return redirect('upload')
 
         else:
             messages.error(request, "Form submission error. Please check the form.")
-            return redirect('upload')  # Ensure a redirect even if form is invalid
+            return render(request, 'cv_tracking_system/upload.html', {'form': form})
+
+   
 class CandidatesView(View):
     def get(self, request):
         candidates = [

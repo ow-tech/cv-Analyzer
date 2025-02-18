@@ -43,15 +43,14 @@ def unique_filename(instance, filename):
 
 
 class Candidate(models.Model):
-    name = models.CharField(max_length=200)  # Candidate's full name
-    email = models.EmailField(unique=True, blank=True, null=True)  # Candidate's email (optional)
-    phone = models.CharField(max_length=20, blank=True, null=True)  # Contact number (optional)
-    location = models.CharField(max_length=200, blank=True, null=True)  # Candidate's location (optional)
+    name = models.CharField(max_length=200)  
+    email = models.EmailField(unique=True, blank=True, null=True)  
+    phone = models.CharField(max_length=20, blank=True, null=True) 
+    location = models.CharField(max_length=200, blank=True, null=True) 
     raw_text = models.TextField()  # Raw extracted resume text
-    structured_data = models.JSONField(default=dict) # AI-parsed data (skills, experience, etc.)
+    structured_data = models.JSONField(default=dict)
     file_path = models.FileField(
-        upload_to=unique_filename, 
-        validators=[ validate_file_size])  
+        upload_to=unique_filename,validators=[validate_file_size])  
     last_updated = models.DateTimeField(auto_now=True)  
     ai_summary = models.TextField(blank=True, null=True)  
 
