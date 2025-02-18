@@ -1,13 +1,62 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect,get_object_or_404
 from django.views import View
 from django.utils.timezone import now
+from django.core.exceptions import ValidationError
+from django.contrib import messages
 
+import logging
+import os
+from .forms import CVUploadForm
+from .services.document_processor import process_document
+
+
+logger = logging.getLogger(__name__)
 class HomeView(View):
     def get(self, request):
         return render(request, 'cv_tracking_system/home.html')
 class UploadView(View):
     def get(self, request):
-        return render(request, 'cv_tracking_system/upload.html')
+        form = CVUploadForm()
+        return render(request, 'cv_tracking_system/upload.html', {'form': form})
+    
+    def post(self, request):
+        form = CVUploadForm(request.POST, request.FILES)
+
+        # Ensure the correct file field is checked
+        if 'file_path' not in request.FILES:
+            print("❌ No file uploaded")
+            messages.error(request, "No file uploaded. Please select a file.")
+            return redirect('upload')
+
+        uploaded_file = request.FILES['file_path']
+        print(f"✅ File received: {uploaded_file.name} ({uploaded_file.size} bytes)")
+
+        if form.is_valid():
+            candidate = form.save(commit=False)  # Save but don’t commit yet
+
+            # Ensure file was actually saved
+            if not candidate.file_path:
+                messages.error(request, "File path is empty.")
+                return redirect('upload')
+
+            print(f"✅ File saved at: {candidate.file_path.path}")
+
+            try:
+                raw_text = process_document(candidate.file_path.path)
+                print("Raw text extracted:", raw_text)
+                candidate.raw_text = raw_text  # Save extracted text
+                candidate.save()  # Now commit
+                messages.success(request, "File uploaded successfully!")
+            except Exception as e:
+                messages.error(request, f"Error processing CV: {str(e)}")
+                return redirect('upload')
+            
+            # ✅ Return a response after success
+            return HttpResponseRedirect(reverse('upload'))
+
+        else:
+            messages.error(request, "Form submission error. Please check the form.")
+            return redirect('upload')  # Ensure a redirect even if form is invalid
 class CandidatesView(View):
     def get(self, request):
         candidates = [
