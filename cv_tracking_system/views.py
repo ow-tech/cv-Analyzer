@@ -40,7 +40,26 @@ class CandidatesView(View):
 
 class CandidateDetailView(View):
     def get(self, request, pk):
-        return render(request, 'cv_tracking_system/home.html')
+        candidate = {
+        "name": "John Doe",
+        "email": "johndoe@example.com",
+        "phone": "+1 234 567 890",
+        "location": "New York, USA",
+        "get_skills": lambda: ["Python", "Django", "JavaScript", "React"],
+        "get_education": lambda: [
+            {"degree": "BSc", "field": "Computer Science", "institution": "MIT", "years": "2015 - 2019"}
+        ],
+        "get_experience": lambda: [
+            {"role": "Software Engineer", "company": "Google", "duration": "2019 - Present", "responsibilities": "Developing scalable web applications"}
+        ],
+        "get_projects": lambda: [
+            {"name": "Portfolio Website", "description": "A personal portfolio website", "technologies": ["HTML", "CSS", "JavaScript"]}
+        ],
+        "get_certifications": lambda: [
+            {"name": "AWS Certified Developer", "issuer": "Amazon", "date": "2022"}
+        ],
+    }
+        return render(request, 'cv_tracking_system/candidate_detail.html', {"candidate": candidate})
 class ChatView(View):
     def get(self, request, pk):
         return render(request, 'cv_tracking_system/home.html')
