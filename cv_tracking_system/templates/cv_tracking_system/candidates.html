@@ -1,0 +1,86 @@
+{% extends 'cv_tracking_system/base.html' %}
+
+{% block title %}Candidates - CV Analyzer{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">Candidates</h1>
+        <a href="{% url 'upload' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Upload New CV</a>
+    </div>
+    
+    <div class="mb-6">
+        <input type="text" id="candidateSearch" placeholder="Search candidates..." class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        {% if candidates %}
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skills</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="candidatesTable">
+                {% for candidate in candidates %}
+                <tr class="candidate-row">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ candidate.name|default:"Unknown" }}</div>
+                        <div class="text-sm text-gray-500">{{ candidate.email|default:"No email" }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ candidate.location|default:"Unknown" }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-wrap gap-1">
+                            {% with skills=candidate.get_skills %}
+                            {% if skills %}
+                                {% for skill in skills|slice:":3" %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">{{ skill }}</span>
+                                {% endfor %}
+                                {% if skills|length > 3 %}
+                                <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">+{{ skills|length|add:"-3" }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-sm text-gray-500">No skills listed</span>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ candidate.last_updated|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{% url 'candidate_detail' candidate.id %}" class="text-blue-600 hover:text-blue-900">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="py-8 text-center">
+            <p class="text-gray-500">No candidates found. Upload some CVs to get started!</p>
+            <a href="{% url 'upload' %}" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Upload CV</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('candidateSearch').addEventListener('keyup', function() {
+        const searchText = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#candidatesTable tr.candidate-row');
+        
+        rows.forEach(row => {
+            const textContent = row.textContent.toLowerCase();
+            row.style.display = textContent.includes(searchText) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}
