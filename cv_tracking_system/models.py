@@ -55,9 +55,9 @@ class Candidate(models.Model):
     ai_summary = models.TextField(blank=True, null=True)  
 
     def __str__(self):
-        skills = ", ".join(self.structured_data.get("skills", [])) or "No skills"
-        education = "; ".join(self.structured_data.get("education", [])) or "No education"
-        experience = "; ".join(self.structured_data.get("experience", [])) or "No experience"
+        skills = ", ".join(self.structured_data.get("skills", []) or []) or "No skills"
+        education = "; ".join(self.structured_data.get("education", []) or []) or "No education"
+        experience = "; ".join(self.structured_data.get("work_experience", []) or []) or "No experience"
 
         return f"{self.name} | {self.email} | Skills: {skills} | Education: {education} | Experience: {experience}"
 

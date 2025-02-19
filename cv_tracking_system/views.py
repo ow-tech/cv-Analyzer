@@ -44,7 +44,7 @@ class UploadView(View):
             try:
                 #  Process document safely
                 raw_text = process_document(candidate.file_path.path)
-                print('raw_text', raw_text)
+                # print('raw_text', raw_text)
                 if not raw_text:
                     messages.error(request, "Failed to extract text from CV.")
                     return redirect('upload')
