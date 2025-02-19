@@ -9,10 +9,10 @@ from django.urls import reverse
 import logging
 import os
 from .forms import CVUploadForm
-from .models import Candidate, unique_filename
 from .services.document_processor import process_document
 from .services.llm_client import LLMClient
 from .services.information_extractor import extract_structured_info
+from .models import Candidate
 logger = logging.getLogger(__name__)
 class HomeView(View):
     def get(self, request):
@@ -43,7 +43,7 @@ class UploadView(View):
             try:
                 #  Process document safely
                 raw_text = process_document(candidate.file_path.path)
-                # print('raw_text', raw_text)
+                print('raw_text', raw_text)
                 if not raw_text:
                     messages.error(request, "Failed to extract text from CV.")
                     return redirect('upload')
@@ -70,7 +70,7 @@ class UploadView(View):
 
                 candidate.save()
                 messages.success(request, f"Successfully processed CV for {candidate.name}")
-                return redirect('upload')
+                return redirect('candidates')
 
             except ValueError as e:
                 messages.error(request, f"Invalid data: {str(e)}")
@@ -89,56 +89,36 @@ class UploadView(View):
    
 class CandidatesView(View):
     def get(self, request):
-        candidates = [
-            {
-                "id": 1,
-                "name": "John Doe",
-                "email": "john.doe@example.com",
-                "location": "New York, USA",
-                "skills": ["Python", "Django", "REST API"],
-                "last_updated": now()
-            },
-            {
-                "id": 2,
-                "name": "Jane Smith",
-                "email": "jane.smith@example.com",
-                "location": "London, UK",
-                "skills": ["SEO", "Digital Marketing", "Google Ads"],
-                "last_updated": now()
-            },
-            {
-                "id": 3,
-                "name": "Michael Brown",
-                "email": "michael.brown@example.com",
-                "location": "Paris, France",
-                "skills": ["Machine Learning", "AI", "Python"],
-                "last_updated": now()
-            }
-        ]
-        return render(request, 'cv_tracking_system/candidates.html', {"candidates": candidates})
+        candidates = Candidate.objects.all().order_by('-last_updated')
+        return render(request, 'cv_tracking_system/candidates.html', {'candidates': candidates})
 
 class CandidateDetailView(View):
     def get(self, request, pk):
-        candidate = {
-        "name": "John Doe",
-        "email": "johndoe@example.com",
-        "phone": "+1 234 567 890",
-        "location": "New York, USA",
-        "get_skills": lambda: ["Python", "Django", "JavaScript", "React"],
-        "get_education": lambda: [
-            {"degree": "BSc", "field": "Computer Science", "institution": "MIT", "years": "2015 - 2019"}
-        ],
-        "get_experience": lambda: [
-            {"role": "Software Engineer", "company": "Google", "duration": "2019 - Present", "responsibilities": "Developing scalable web applications"}
-        ],
-        "get_projects": lambda: [
-            {"name": "Portfolio Website", "description": "A personal portfolio website", "technologies": ["HTML", "CSS", "JavaScript"]}
-        ],
-        "get_certifications": lambda: [
-            {"name": "AWS Certified Developer", "issuer": "Amazon", "date": "2022"}
-        ],
-    }
-        return render(request, 'cv_tracking_system/candidate_detail.html', {"candidate": candidate})
+        candidate = get_object_or_404(Candidate, pk=pk)
+        return render(request, 'cv_tracking_system/candidate_detail.html', {'candidate': candidate})
+
+# class CandidateDetailView(View):
+#     def get(self, request, pk):
+#         candidate = {
+#         "name": "John Doe",
+#         "email": "johndoe@example.com",
+#         "phone": "+1 234 567 890",
+#         "location": "New York, USA",
+#         "get_skills": lambda: ["Python", "Django", "JavaScript", "React"],
+#         "get_education": lambda: [
+#             {"degree": "BSc", "field": "Computer Science", "institution": "MIT", "years": "2015 - 2019"}
+#         ],
+#         "get_experience": lambda: [
+#             {"role": "Software Engineer", "company": "Google", "duration": "2019 - Present", "responsibilities": "Developing scalable web applications"}
+#         ],
+#         "get_projects": lambda: [
+#             {"name": "Portfolio Website", "description": "A personal portfolio website", "technologies": ["HTML", "CSS", "JavaScript"]}
+#         ],
+#         "get_certifications": lambda: [
+#             {"name": "AWS Certified Developer", "issuer": "Amazon", "date": "2022"}
+#         ],
+#     }
+#         return render(request, 'cv_tracking_system/candidate_detail.html', {"candidate": candidate})
 class ChatView(View):
     def get(self, request):
         dummy_messages = [

@@ -9,7 +9,7 @@ def extract_structured_info(text, llm_client=None):
 
     if llm_client is None:
         llm_client = LLMClient()
-    print("LLMClient Instance:", llm_client)     
+    # print("LLMClient Instance:", llm_client)     
     prompt = f"""
     You are an AI that extracts structured JSON from resumes.
     
@@ -73,8 +73,9 @@ def extract_structured_info(text, llm_client=None):
     
     try:
         response = llm_client.generate_text(prompt)
+        # print('response responsere sponse response ', response)
         try:
-            print('response responsere sponse response ', response)
+          
             return json.loads(response.strip())  # Try parsing JSON directly
         except json.JSONDecodeError:
             json_match = re.search(r'\{.*\}', response, re.DOTALL)
