@@ -1,13 +1,13 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from django.views import View
-from django.utils.timezone import now
+from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 from django.contrib import messages
-
+from django.db.models import Q
 from django.http import JsonResponse
 import logging
 import uuid
-import os
+import markdown
 from .forms import CVUploadForm,QueryForm
 from .services.document_processor import process_document
 from .services.llm_client import LLMClient
@@ -63,14 +63,7 @@ class UploadView(View):
                 # #  Update candidate info
                 personal_info = structured_info.get('personal_info') or {}
                 email = personal_info.get('email', '').strip()
-                # candidate.name = personal_info.get('name', 'Unknown')
-                # candidate.email = personal_info.get('email', '')
-                # candidate.phone = personal_info.get('phone', '')
-                # candidate.location = personal_info.get('location', '')
-                # candidate.raw_text = raw_text
-                # candidate.structured_data = structured_info
-
-                # candidate.save()
+             
                 candidate, created = Candidate.objects.update_or_create(
                     email=email,
                     defaults={
@@ -86,7 +79,8 @@ class UploadView(View):
                     messages.success(request, f"Successfully added candidate {candidate.name}")
                 else:
                     messages.success(request, f"Candidate {candidate.name} updated successfully")
-
+                    
+                Candidate.objects.filter(Q(email__isnull=True) | Q(email='')).delete()
                 return redirect('candidates')
 
             except ValueError as e:
@@ -129,6 +123,8 @@ class ChatView(View):
         try:
             session = ChatSession.objects.get(session_id=session_id)
             messages = ChatMessage.objects.filter(session=session).order_by('timestamp')
+            for message in messages:
+                message.content = mark_safe(markdown.markdown(message.content))
         except ChatSession.DoesNotExist:
             messages = []
         
@@ -155,6 +151,7 @@ class ChatView(View):
             
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 # Return JSON for AJAX requests
+                
                 return JsonResponse({'response': response})
             else:
                 # Redirect for regular form submissions

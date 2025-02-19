@@ -1,6 +1,8 @@
 {% extends 'cv_tracking_system/base.html' %}
+{% include 'base.html' with hide_success_messages=True %}
 
 {% block title %}Chat Assistant - CV Analyzer{% endblock %}
+
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
@@ -34,7 +36,7 @@
                 {% for message in messages %}
                 <div class="flex {% if message.role == 'user' %}justify-end{% else %}justify-start{% endif %}">
                     <div class="max-w-3/4 p-3 rounded-lg {% if message.role == 'user' %}bg-blue-100 text-blue-900{% else %}bg-gray-100 text-gray-900{% endif %}">
-                        <p>{{ message.content|linebreaksbr }}</p>
+                        <p>{{ message.content|linebreaksbr|safe }}</p>
                     </div>
                 </div>
                 {% endfor %}
@@ -63,9 +65,9 @@
         <h2 class="text-xl font-semibold mb-3 text-blue-800">Tips for Querying</h2>
         <ul class="list-disc list-inside space-y-2 text-blue-700">
             <li>Ask about specific skills: "Find candidates with JavaScript experience"</li>
-            <li>Query for education: "Who has a Master's degree?"</li>
-            <li>Search by experience: "Show people with 5+ years in software development"</li>
-            <li>Compare candidates: "Compare top candidates for a data scientist role"</li>
+            <li>Query for education: "Who has a Bachelor's degree?"</li>
+            <li>Search by experience: "Show people with 3+ years in software development"</li>
+            <li>Compare candidates: "Compare top candidates for a software develop role"</li>
             <li>Ask follow-up questions about your results</li>
         </ul>
     </div>
@@ -120,6 +122,9 @@
             </div>
         `;
         chatMessages.appendChild(loadingDiv);
+
+         // Scroll to show "Thinking..."
+        loadingDiv.scrollIntoView({ behavior: 'smooth' });
         
         // Animate loading dots
         const loadingDots = document.querySelector('.loading-dots');
@@ -149,8 +154,11 @@
             chatMessages.removeChild(loadingDiv);
             clearInterval(loadingInterval);
             
-            // Add assistant message
-            addMessage(data.response, 'assistant');
+            // // Add assistant message
+            // addMessage(data.response, 'assistant');
+                    // Add assistant message and scroll to it
+            const assistantMessage = addMessage(data.response, 'assistant');
+            assistantMessage.scrollIntoView({ behavior: 'smooth' });
             
         } catch (error) {
             console.error('Error:', error);
