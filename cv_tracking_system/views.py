@@ -7,12 +7,13 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 import logging
+import uuid
 import os
-from .forms import CVUploadForm
+from .forms import CVUploadForm,QueryForm
 from .services.document_processor import process_document
 from .services.llm_client import LLMClient
 from .services.information_extractor import extract_structured_info
-from .models import Candidate
+from .models import Candidate,ChatSession,ChatMessage
 logger = logging.getLogger(__name__)
 class HomeView(View):
     def get(self, request):
@@ -97,34 +98,30 @@ class CandidateDetailView(View):
         candidate = get_object_or_404(Candidate, pk=pk)
         return render(request, 'cv_tracking_system/candidate_detail.html', {'candidate': candidate})
 
-# class CandidateDetailView(View):
-#     def get(self, request, pk):
-#         candidate = {
-#         "name": "John Doe",
-#         "email": "johndoe@example.com",
-#         "phone": "+1 234 567 890",
-#         "location": "New York, USA",
-#         "get_skills": lambda: ["Python", "Django", "JavaScript", "React"],
-#         "get_education": lambda: [
-#             {"degree": "BSc", "field": "Computer Science", "institution": "MIT", "years": "2015 - 2019"}
-#         ],
-#         "get_experience": lambda: [
-#             {"role": "Software Engineer", "company": "Google", "duration": "2019 - Present", "responsibilities": "Developing scalable web applications"}
-#         ],
-#         "get_projects": lambda: [
-#             {"name": "Portfolio Website", "description": "A personal portfolio website", "technologies": ["HTML", "CSS", "JavaScript"]}
-#         ],
-#         "get_certifications": lambda: [
-#             {"name": "AWS Certified Developer", "issuer": "Amazon", "date": "2022"}
-#         ],
-#     }
-#         return render(request, 'cv_tracking_system/candidate_detail.html', {"candidate": candidate})
+
 class ChatView(View):
     def get(self, request):
-        dummy_messages = [
-            {"role": "user", "content": "Find candidates with Python experience."},
-            {"role": "assistant", "content": "Here are some candidates with Python expertise:\n\n1. John Doe - 5 years of experience.\n2. Jane Smith - 3 years of experience."},
-            {"role": "user", "content": "Who has experience in project management?"},
-            {"role": "assistant", "content": "Candidates with project management experience:\n\n1. Alex Johnson - PMP Certified.\n2. Emily Davis - 7 years of experience."},
-        ]
-        return render(request, 'cv_tracking_system/chat.html', {"messages": dummy_messages})
+        form = QueryForm()
+             
+         # Create or get session ID from cookies
+        session_id = request.COOKIES.get('chat_session_id')
+        if not session_id:
+            session_id = str(uuid.uuid4())
+          # Get chat history if session exists
+          
+        try:
+            session = ChatSession.objects.get(session_id=session_id)
+            messages = ChatMessage.objects.filter(session=session).order_by('timestamp')
+        except ChatSession.DoesNotExist:
+            messages = []
+        
+        response = render(request, 'cv_tracking_system/chat.html', {
+            'form': form,
+            'messages': messages,
+        })
+        
+        # Set session cookie if needed
+        if not request.COOKIES.get('chat_session_id'):
+            response.set_cookie('chat_session_id', session_id, max_age=60*60*24*30)  # 30 days
+            
+        return response
