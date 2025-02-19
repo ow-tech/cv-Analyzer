@@ -52,12 +52,12 @@
     
     
     <!-- Messages -->
-    {% if messages %}
+    {% if messages and request.resolver_match.url_name != "chat" %}
     <div class="container mx-auto px-6 py-2">
         {% for message in messages %}
         <div class="px-4 py-3 rounded my-2 border-l-4 
                     {% if message.tags == 'error' %} bg-red-100 border-red-500 text-red-700 
-                    {% else %} bg-green-100 border-green-500 text-green-700 {% endif %}" 
+                    {% elif message.tags == 'success' %} bg-green-100 border-green-500 text-green-700 {% endif %}" 
              role="alert">
             <span class="block sm:inline">{{ message }}</span>
         </div>

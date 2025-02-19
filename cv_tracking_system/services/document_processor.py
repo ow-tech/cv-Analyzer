@@ -17,7 +17,9 @@ def extract_text_with_ocr(pdf_path):
     extracted_text = ""
     
     for img in images:
-        img_cv = np.array(img)
+        img_cv =  cv2.imread(pdf_path)
+        if img_cv is None:
+            raise FileNotFoundError(f"Error processing PDF {pdf_path}: File not found or invalid.")
         img_gray = cv2.cvtColor(img_cv, cv2.COLOR_RGB2GRAY)  # Convert to grayscale
         extracted_text += pytesseract.image_to_string(img_gray, config='--psm 6') + "\n"
 
@@ -33,11 +35,7 @@ def extract_text_from_pdf(pdf_path):
             for page_num in range(len(reader.pages)):
                 text += reader.pages[page_num].extract_text() + "\n"
                 
-        # If extracted text is too little, use OCR
-        # if len(text.strip()) < 100:  # Arbitrary threshold
-        #     images = pdf2image.convert_from_path(pdf_path)
-        #     for img in images:
-        #         text += pytesseract.image_to_string(img) + "\n"
+
         # If no text found, try OCR
         if not text.strip():
             text = extract_text_with_ocr(pdf_path)
@@ -77,7 +75,7 @@ def preprocess_text(text):
     # Remove excessive whitespace
     text = re.sub(r'\s+', ' ', text).strip()
     # Remove special characters but keep relevant punctuation
-    text = re.sub(r'[^\w\s.,@:;()/-]', '', text)
+    text = re.sub(r'[^\w\s.,@:;()!/-]', '', text)
     return text
 
 def process_document(file_path):

@@ -151,8 +151,8 @@ class ChatView(View):
             
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 # Return JSON for AJAX requests
-                
-                return JsonResponse({'response': response})
+                formatted_response = mark_safe(markdown.markdown(response))
+                return JsonResponse({'response': formatted_response})
             else:
                 # Redirect for regular form submissions
                 return redirect('chat')
