@@ -55,11 +55,18 @@ class Candidate(models.Model):
     ai_summary = models.TextField(blank=True, null=True)  
 
     def __str__(self):
-        return self.name or f"Candidate {self.id}"
+        skills = ", ".join(self.structured_data.get("skills", [])) or "No skills"
+        education = "; ".join(self.structured_data.get("education", [])) or "No education"
+        experience = "; ".join(self.structured_data.get("experience", [])) or "No experience"
+
+        return f"{self.name} | {self.email} | Skills: {skills} | Education: {education} | Experience: {experience}"
+
 
     # Helper methods to retrieve structured AI-parsed data
     def get_skills(self):
-        return self.structured_data.get('skills', [])
+        skills = self.structured_data.get('skills', [])
+        return skills if isinstance(skills, list) else []
+
 
     def get_education(self):
         return self.structured_data.get('education', [])

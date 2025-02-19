@@ -4,8 +4,7 @@ from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 
-from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.http import JsonResponse
 import logging
 import uuid
 import os
@@ -13,6 +12,7 @@ from .forms import CVUploadForm,QueryForm
 from .services.document_processor import process_document
 from .services.llm_client import LLMClient
 from .services.information_extractor import extract_structured_info
+from .services.query_processor import process_query
 from .models import Candidate,ChatSession,ChatMessage
 logger = logging.getLogger(__name__)
 class HomeView(View):
@@ -60,17 +60,33 @@ class UploadView(View):
                     messages.error(request, f"Error processing CV: {structured_info['error']}")
                     return redirect('upload')
 
-                #  Update candidate info
+                # #  Update candidate info
                 personal_info = structured_info.get('personal_info') or {}
-                candidate.name = personal_info.get('name', 'Unknown')
-                candidate.email = personal_info.get('email', '')
-                candidate.phone = personal_info.get('phone', '')
-                candidate.location = personal_info.get('location', '')
-                candidate.raw_text = raw_text
-                candidate.structured_data = structured_info
+                email = personal_info.get('email', '').strip()
+                # candidate.name = personal_info.get('name', 'Unknown')
+                # candidate.email = personal_info.get('email', '')
+                # candidate.phone = personal_info.get('phone', '')
+                # candidate.location = personal_info.get('location', '')
+                # candidate.raw_text = raw_text
+                # candidate.structured_data = structured_info
 
-                candidate.save()
-                messages.success(request, f"Successfully processed CV for {candidate.name}")
+                # candidate.save()
+                candidate, created = Candidate.objects.update_or_create(
+                    email=email,
+                    defaults={
+                        'name': personal_info.get('name', 'Unknown'),
+                        'phone': personal_info.get('phone', ''),
+                        'location': personal_info.get('location', ''),
+                        'raw_text': raw_text,
+                        'structured_data': structured_info,
+                        'file_path': candidate.file_path,
+                    }
+                )
+                if created:
+                    messages.success(request, f"Successfully added candidate {candidate.name}")
+                else:
+                    messages.success(request, f"Candidate {candidate.name} updated successfully")
+
                 return redirect('candidates')
 
             except ValueError as e:
@@ -100,6 +116,7 @@ class CandidateDetailView(View):
 
 
 class ChatView(View):
+    
     def get(self, request):
         form = QueryForm()
              
@@ -125,3 +142,23 @@ class ChatView(View):
             response.set_cookie('chat_session_id', session_id, max_age=60*60*24*30)  # 30 days
             
         return response
+
+    def post(self, request):
+        form = QueryForm(request.POST)
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            session_id = request.COOKIES.get('chat_session_id', str(uuid.uuid4()))
+            
+            # Process query
+            llm_client = LLMClient()
+            response = process_query(query, session_id, llm_client)
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                # Return JSON for AJAX requests
+                return JsonResponse({'response': response})
+            else:
+                # Redirect for regular form submissions
+                return redirect('chat')
+        else:
+            messages.error(request, "Invalid query")
+            return redirect('chat')
