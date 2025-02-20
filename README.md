@@ -16,7 +16,7 @@ cv-Analyzer is a Django 4.2 project designed to process, analyze, and query CVs 
   - Certifications
 
 ### 2. LLM Integration
-- Connects with **OpenAI GPT**.
+- Connects with **OpenAI gpt-4o-mini"**.
 - Utilizes **prompt engineering** to extract meaningful insights from CVs.
 - Organizes and stores extracted information efficiently.
 - Handles **API rate limiting and error management**.
@@ -57,6 +57,8 @@ pip install -r requirements.txt
 - Add the following:
 ```env
 OPENAI_API_KEY=your-openai-api-key
+
+Ensure the Api key is for gpt-4o-mini"**.
 ```
 - Check `.env_example` for reference.
 
