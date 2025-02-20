@@ -35,11 +35,12 @@ cv-Analyzer is a Django 4.2 project designed to process, analyze, and query CVs 
 
 ### 1. Clone the Repository
 ```bash
-ttps://github.com/ow-tech/cv-Analyzer.git
-cd cv_Analyzer
+git clone https://github.com/ow-tech/cv-Analyzer.git
+cd cv-Analyzer
+Open cv-Analyzer in your code editor
 ```
 
-### 2. Create and Activate a Virtual Environment
+### 2. Create and Activate a Virtual Environment Using Terminal 
 ```bash
 python -m venv venv  # Create virtual environment
 source venv/bin/activate  # Mac/Linux
