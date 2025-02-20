@@ -21,5 +21,5 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('cv_tracking_system/', include('cv_tracking_system.urls')),
+    path('', include('cv_tracking_system.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
