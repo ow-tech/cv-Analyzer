@@ -19,6 +19,7 @@ staticfiles/
 # Environment variables
 .env
 *.env
+.env_example
 
 
 # IDE / Editor files
